@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wechselkurs CHF zu EUR</title>
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #1e1e1e;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #ff3b3b;
+        }
+
+        #exchange-rate {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 20px 0;
+            color: #00ff9d;
+        }
+
+        .card {
+            background: #2c2c2c;
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            max-width: 600px;
+            width: 90%;
+        }
+
+        input[type="number"] {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #444;
+            background: #1e1e1e;
+            color: #ffffff;
+            font-size: 1.2em;
+            width: calc(100% - 20px);
+            max-width: 400px;
+            margin: 10px 0;
+        }
+
+        button {
+            background: #ff3b3b;
+            border: none;
+            color: white;
+            font-size: 1em;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(255, 59, 59, 0.5);
+        }
+
+        button:hover {
+            background: #e13232;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 1.5em;
+            color: #00ff9d;
+        }
+
+        footer {
+            margin-top: 40px;
+            font-size: 1em;
+            color: rgba(255, 255, 255, 0.7);
+            text-align: center;
+        }
+
+        .developer {
+            margin-top: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #ff3b3b;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Wechselkurs</h1>
+        <p id="exchange-rate">Lade Daten...</p>
+        
+        <!-- Eingabefeld und Buttons -->
+        <input type="number" id="amount" placeholder="Betrag eingeben">
+        <div>
+            <button onclick="convertToEuro()">Frank zu Euro</button>
+            <button onclick="convertToFrank()">Euro zu Frank</button>
+        </div>
+        <p id="result"></p>
+    </div>
+
+    <footer>
+        Aktualisiert alle 5 Minuten
+        <div class="developer">Erstellt von Patrik Leitner</div>
+    </footer>
+    
+    <script>
+        let exchangeRate = null;
+
+        // Funktion, um den Wechselkurs von der API abzurufen
+        async function fetchExchangeRate() {
+            try {
+                const response = await fetch('https://api.exchangerate-api.com/v4/latest/CHF');
+                if (!response.ok) {
+                    throw new Error("API-Abruf fehlgeschlagen");
+                }
+                const data = await response.json();
+                exchangeRate = data.rates.EUR; // Wechselkurs speichern
+                document.getElementById('exchange-rate').innerText = `1 CHF = ${exchangeRate.toFixed(2)} EUR`;
+            } catch (error) {
+                document.getElementById('exchange-rate').innerText = "Fehler beim Abrufen der Daten.";
+                console.error("Fehler:", error);
+            }
+        }
+
+        // Konvertierung: Frank zu Euro
+        function convertToEuro() {
+            const amount = parseFloat(document.getElementById('amount').value);
+            if (isNaN(amount) || amount <= 0) {
+                document.getElementById('result').innerText = "Bitte einen gültigen Betrag eingeben.";
+                return;
+            }
+            const result = amount * exchangeRate;
+            document.getElementById('result').innerText = `${amount} CHF = ${result.toFixed(2)} EUR`;
+        }
+
+        // Konvertierung: Euro zu Frank
+        function convertToFrank() {
+            const amount = parseFloat(document.getElementById('amount').value);
+            if (isNaN(amount) || amount <= 0) {
+                document.getElementById('result').innerText = "Bitte einen gültigen Betrag eingeben.";
+                return;
+            }
+            const result = amount / exchangeRate;
+            document.getElementById('result').innerText = `${amount} EUR = ${result.toFixed(2)} CHF`;
+        }
+
+        // Wechselkurs abrufen
+        fetchExchangeRate();
+
+        // Aktualisierung alle 5 Minuten
+        setInterval(fetchExchangeRate, 300000); // 300.000 Millisekunden = 5 Minuten
+    </script>
+</body>
+</html>
